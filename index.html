@@ -8,9 +8,7 @@
 
 <script>
 
-var mingdp = 
-var maxgdp = 
-var colorscale =  d3.scale.linear().domain([mingdp, maxgdp]).range(['gray', 'green']);
+//var colorscale =  d3.scale.linear().domain([mingdp, maxgdp]).range(['gray', 'green']);
 
 d3.csv("/data/GDP.csv", function(error, gdpdata) {
     
@@ -22,12 +20,15 @@ d3.csv("/data/GDP.csv", function(error, gdpdata) {
     }
 );
 
+var countries = Datamap.prototype.worldTopo.objects.world.geometries;
+for (var i = 0, j = countries.length; i < j; i++) {
+  console.log(countries[i].properties.name, ',', countries[i].id);
+}
 
 // Documentation at datamaps.github,io
 var map = new Datamap({
     element: document.getElementById('container'),
 
 });
- 
 
 </script>
