@@ -7,7 +7,7 @@ Directory for iPython/jupyter notebooks reading data from raw_data, cleaning/org
 
 ## processed_data
 
-**Total_stock_as_fraction.csv**: Total migrant stock for each country as a fraction of its population in a given year. `code` is alpha-3 ISO country code. Columns for years `1990, 1995, 2000, 2005, 2010, 2015`. `NaN` values (just Eritrea, 2015) were filled with `0.0`.
+**Total_stock_as_fraction.csv**: Total migrant stock for each country as a fraction of its population in a given year. `code` is alpha-3 ISO country code. Columns for years `1990, 1995, 2000, 2005, 2010, 2015`. `NaN` values were filled with `0.0`.
 
 
 **GDP\_per\_capita.csv**: `code` is alpha-3 ISO country code. Columns for years `1990, 1995, 2000, 2005, 2010, 2015`. `NaN` values were filled with `0.0`.
