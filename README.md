@@ -5,6 +5,10 @@ d3 visualization project using datasets: UN Migration Estimates, UCDP/PRIO Armed
 
 Directory for iPython/jupyter notebooks reading data from raw_data, cleaning/organizing it, and writing to processed_data. 
 
+## processed_data
+
+**GDP\_per\_capita.csv**: `code` is alpha-3 ISO country code. `NaN` values were filled with `0.0`.
+
 ## raw_data
 
 **ISO\_codes.csv**: A complete set of numeric and alphanumeric country codes for combining data from files that use different codes. (We want alpha-3 for datamaps.)
