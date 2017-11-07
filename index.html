@@ -1,6 +1,8 @@
+<!DOCTYPE html>
+<body>
 
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/queue.v1.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
 <script src="/js/datamaps.world.min.js"></script>
 
@@ -8,27 +10,45 @@
 
 <script>
 
-//var colorscale =  d3.scale.linear().domain([mingdp, maxgdp]).range(['gray', 'green']);
+var years = ['1990', '1995', '2000', '2005', '2010', '2015'];
 
-d3.csv("/data/GDP.csv", function(error, gdpdata) {
-    
-    gdpdata.forEach( function(d, i) {
-        console.log(d, i);
-        }
-    );
+// init fill data with entry for each year
+var gdp_fills = {}; years.forEach(function(y) { gdp_fills[y] = {}; });
+var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
 
-    }
-);
+// color scales
+var gdpScale =  d3.scale.linear()
+    .domain([0.1, 110000.0])
+    .range(['#D3D3D3', 'green']);
 
-var countries = Datamap.prototype.worldTopo.objects.world.geometries;
-for (var i = 0, j = countries.length; i < j; i++) {
-  console.log(countries[i].properties.name, ',', countries[i].id);
-}
+var stockScale =  d3.scale.linear()
+    .domain([0.0, 0.9])
+    .range(['#D3D3D3', 'green']);
 
-// Documentation at datamaps.github,io
+// load data
+queue()
+    .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
+    .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
+    .await(loadAllData);
+
+function loadAllData(error, gdp, stock) {
+    years.forEach( function(y) {
+        gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
+        stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
+    })
+    console.log(gdp_fills['1990']);
+};
+
+// make map: documentation at datamaps.github,io
 var map = new Datamap({
     element: document.getElementById('container'),
-
+    fills: { defaultFill: '#D3D3D3' },
+    data: gdp_fills['1990']
 });
 
+map.updateChoropleth(gdp_fills['1990']);
+map.updateChoropleth(stock_fills['2005']);
+
 </script>
+
+</body>
