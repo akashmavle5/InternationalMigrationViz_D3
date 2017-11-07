@@ -46,8 +46,9 @@ var map = new Datamap({
     data: gdp_fills['1990']
 });
 
-map.updateChoropleth(gdp_fills['1990']);
-map.updateChoropleth(stock_fills['2005']);
+window.setInterval(function() {
+    map.updateChoropleth(stock_fills['2005']);
+}, 2000);
 
 </script>
 
