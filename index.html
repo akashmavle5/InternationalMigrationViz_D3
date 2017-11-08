@@ -1,23 +1,34 @@
-
 <!DOCTYPE html>
 <meta charset="utf-8">
-<body>
-  <script src="http://d3js.org/d3.v3.min.js"></script>
+<head>
+<link rel="stylesheet" type="text/css" href="design.css">
+</head>
+<script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/topojson.v1.min.js"></script>
   <script src="./js/datamaps.world.min.js?v=1"></script>
   <script src="https://d3js.org/queue.v1.min.js"></script>
-  
-  <h2>Datamaps Test</h2>
-    <label id="testValue">Showing year:</label>
+<body>
+  <h2>Migration of people and its effect over the world</h2>
+    <label id="testValue" class="labelFont">Showing year:</label>
     <br>
     <br>
-    
-  <button onclick="buttonClick()">testButton1</button>
-    
-  <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
-
-  <span id="range">1990</span>
-    
+  <div id="sliderandbuttons" style="width:100%; margin-left:20px; padding-bottom:0px; background-color:red;">
+    <div style="float: left; display: block;">
+    <button class="myButton" onclick="buttonClick()">Initialize</button>
+    <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
+    <span id="range">1990</span>
+    </div>
+    <div style="float:right; margin-right:20%; display: block;">
+        <button id="btnFactor1" class="myButton" onclick="btnFactor1Click()">Factor 1</button>
+        <button id="btnFactor2" class="myButton" onclick="btnFactor2Click()">Factor 2</button>
+        <button id="btnFactor3" class="myButton" onclick="btnFactor3Click()">Factor 3</button>
+    </div>    
+   </div>
+    <h1 style="color:white; margin-top:0px; margin-bottom:0px;">TEST</h1>
+    <table style="margin-left:250px">
+    <tr><td style="width:500px;"><label id="labelLeft" class="labelFontSmaller">Migration data</label></td>
+    <td style="width:300px;"><label id="labelFactor" class="labelFontSmaller">Factor 1</label></td></tr>
+    </table>
   <script type="text/javascript">
     onload = function() {
         var $ = function(id) { return document.getElementById(id); };
@@ -25,15 +36,12 @@
         $('testslider').oninput();
     };
     </script>
-    
   <div id="wraparoundDiv" style="width:100%;">
-      <div id="container1" style="position: left; width: 45%; max-height: 450px; float: left;"></div>
-      <div id="divider" style="background-color: aqua; position: left; width:10px; max-height: 450px;"></div>
-        
-      <div id="container2" style="position: left; width: 45%; max-height: 450px; float: left;"></div>
-
+      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left; display: block;">
+          </div>
+      <div id="divider" style="background-color: black; position: left; width:10px; max-height: 450px; display: block;"></div>
+      <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; display: block;"></div>
   </div>
-    
   <script>
         // Initialize fill datasets  
         var years = ['1990', '1995', '2000', '2005', '2010', '2015']; 
@@ -67,18 +75,19 @@
             projection: 'mercator',
             height: 500,
             fills: {
-              defaultFill: '#f0af0a',
-              lt50: 'rgba(0,244,244,0.9)',
-              gt50: 'blue'
+              defaultFill: '#D3D3D3',
+              //lt50: 'rgba(0,244,244,0.9)',
+              //gt50: 'blue'
             },
               
             geographyConfig: {
+                //popupTemplate: 
              // borderColor: 'red' ,
-              highlightBorderColor: '#bada55',
-              highlightBorderWidth: 2
+              highlightBorderColor: 'black',
+              highlightBorderWidth: 1
             },
         });
-      
+            
         var factorMap = new Datamap({
             scope: 'world',
             element: document.getElementById('container2'),
@@ -89,21 +98,41 @@
             data: {},
             fills: {
             //Use "keyword" from CSV to fill a color
-              'Visited': 'blue',
-              defaultFill: '#f0af0a'
+              'Visited': 'light-blue',
+              defaultFill: '#D3D3D3'
             },
               
             geographyConfig: {
-             //popupTemplate: function(geo, data) {
-             //       return data && data.info 
-             //        && "<div class='hoverinfo'><strong>" + data.info + "</strong></div>";
-               
-              highlightBorderColor: '#bada55',
-              highlightBorderWidth: 3
-            },
+             popupTemplate: function(geo, data) {
+                   //var position = d3.mouse(self.options.element);
+                   //console.log("Position is: " + position);
+                    return data && data.info 
+                     && "<div class='hoverinfo' style='margin-left: 500px;'><strong>" + data.info + "</strong></div>";
+             },
+              highlightBorderColor: 'black',
+              highlightBorderWidth: 1,
+            }
         });
-         
-        var testArcs = [];     
+      
+      //Mouse click event
+      d3.selectAll('#container1').on('click', function(info) {
+          //call our arc function
+          drawArcs(d3.select(d3.event.target).data()[0].id);
+      });
+      
+      
+//        d3.selectAll('#container1').on('mouseout', function(info) {
+//         // if (d3.event.target.tagName == "circle"){
+//            console.log(d3.select(d3.event.target).data()[0],"out")
+//          //}
+//        });
+//        d3.selectAll('#container1').on('mouseover', function(info) {
+//          //if (d3.event.target.tagName == "circle"){
+//            console.log(d3.select(d3.event.target).data()[0],"over")
+//          //}
+//        });
+      
+      var testArcs = [];     
          
       //Building the arcs from data
          
@@ -118,8 +147,8 @@
                 //Do we read them from a different file? 
                 //One arc for 1000's of migrants, or just 1 per country?
                 
-                //only USA, CAN has test data now
-                if ((csvdata[i].id == "USA")||(csvdata[i].id == "CAN"))
+                //only USA, has test data now
+                if ((csvdata[i].id == "USA")) //||(csvdata[i].id == "CAN"))
                 {
                     //Push every entry onto our array
                     testArcs.push({
@@ -130,7 +159,34 @@
                         destination: {
                             latitude: csvdata[i].lat1,
                             longitude: csvdata[i].long1 
-                        }
+                        },
+                        strokeWidth: csvdata[i].weight1
+                    });
+                    
+                    testArcs.push({
+                        origin: {
+                            latitude: csvdata[i].latStart,
+                            longitude: csvdata[i].longStart
+                        },
+                        destination: {
+                            latitude: csvdata[i].lat2,
+                            longitude: csvdata[i].long2 
+                        },
+                        strokeWidth: csvdata[i].weight2
+                    
+                    });
+                    
+                     testArcs.push({
+                        origin: {
+                            latitude: csvdata[i].latStart,
+                            longitude: csvdata[i].longStart
+                        },
+                        destination: {
+                            latitude: csvdata[i].lat3,
+                            longitude: csvdata[i].long3
+                        },
+                        strokeWidth: csvdata[i].weight3
+                         
                     });
                 }
             }
@@ -141,16 +197,29 @@
                         console.log(value);
                         buttonClick();
         });
+      
+      
+      function drawArcs(country)
+      {
+          //country will give us what to draw. 
+          //TODO: Call function to build the right arcs for this country.
+          
+          console.log("Drawing arcs for:");
+          console.log(country);
+          
+          //Draw the arcs
+          stockMap.arc(testArcs); //, {strokeWidth: 2}); 
+      }
              
         function buttonClick()
         {
+            //clear arcs
+            stockMap.arc([]);
+            
             // Update fill colors
             stockMap.updateChoropleth(stock_fills[value]);
             factorMap.updateChoropleth(gdp_fills[value]);
 
-            //Draw the arcs
-            factorMap.arc( testArcs, {strokeWidth: 2}); 
-            
             //testValue
             console.log("Inside buttonClick");
             console.log(value);
