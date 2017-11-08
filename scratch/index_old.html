@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<body>
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/queue.v1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+<script src="/js/datamaps.world.min.js"></script>
+
+<div id="container" style="position: relative; width: 1000px; height: 600px;"></div>
+
+<script>
+
+var years = ['1990', '1995', '2000', '2005', '2010', '2015'];
+
+// init fill data with entry for each year
+var gdp_fills = {}; years.forEach(function(y) { gdp_fills[y] = {}; });
+var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
+
+// color scales
+var gdpScale =  d3.scale.linear()
+    .domain([0.1, 110000.0])
+    .range(['#D3D3D3', 'green']);
+
+var stockScale =  d3.scale.linear()
+    .domain([0.0, 0.9])
+    .range(['#D3D3D3', 'green']);
+
+// load data
+queue()
+    .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
+    .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
+    .await(loadAllData);
+
+function loadAllData(error, gdp, stock) {
+    years.forEach( function(y) {
+        gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
+        stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
+    })
+    console.log(gdp_fills['1990']);
+};
+
+// make map: documentation at datamaps.github,io
+var map = new Datamap({
+    element: document.getElementById('container'),
+    fills: { defaultFill: '#D3D3D3' },
+    data: gdp_fills['1990']
+});
+
+window.setInterval(function() {
+    map.updateChoropleth(stock_fills['2005']);
+    map.arc([
+        {
+            origin: 'USA',
+            destination: 'AFG'
+        },
+        {
+            origin: 'BRA',
+            destination: 'CAN'
+        }
+    ], {strockWidth: 1, arcSharpness: 1.4});
+
+}, 2000);
+
+</script>
+
+</body>
