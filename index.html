@@ -48,9 +48,13 @@
 
         var gdp_fills = {}; years.forEach(function(y) { gdp_fills[y] = {}; });
         var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
+        
+        // Colorscales
+        var gdpScale =  d3.scale.linear().domain([0.1, 20000, 110000.0])
+            .range(['#D3D3D3', '#009900', '#006600']);
 
-        var gdpScale =  d3.scale.linear().domain([0.1, 110000.0]).range(['#D3D3D3', 'green']);
-        var stockScale =  d3.scale.linear().domain([0.0, 0.9]).range(['#D3D3D3', 'green']);
+        var stockScale =  d3.scale.linear().domain([0.0, 0.2, 0.9])
+            .range(['#D3D3D3', '#009900', '#006600']);
 
         queue()
             .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
