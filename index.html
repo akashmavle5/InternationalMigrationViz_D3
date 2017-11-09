@@ -139,6 +139,9 @@
       //TODO: Put this in a function, that takes the current year, and
          //loads the correct arc data (from csv file)
          
+    
+        //TODO: Read in this to a (key,value) list with key "CountryCode", value, list of arcs
+      
         d3.csv("data2.csv", function(error, csvdata) {
 
             for (var i=0;i < csvdata.length;i++)
@@ -149,7 +152,7 @@
                 
                 //only USA, has test data now
                 if ((csvdata[i].id == "USA")) //||(csvdata[i].id == "CAN"))
-                {
+                {   
                     //Push every entry onto our array
                     testArcs.push({
                         origin: {
@@ -188,6 +191,8 @@
                         strokeWidth: csvdata[i].weight3
                          
                     });
+                    
+                    
                 }
             }
         });
