@@ -1,4 +1,4 @@
-Country,Alpha-2 code,Alpha-3 code,Numeric code,Latitude (average),Longitude (average),Icon
+Country,Alpha-2,Alpha-3,Numeric,lat,long,Icon
 Albania,AL,ALB,8,41,20,
 Algeria,DZ,DZA,12,28,3,
 American Samoa,AS,ASM,16,-14.3333,-170,
