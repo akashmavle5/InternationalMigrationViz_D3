@@ -14,16 +14,16 @@
     <br>
   <div id="sliderandbuttons" style="width:100%; margin-left:20px; padding-bottom:0px; background-color:red;">
     <div style="float: left; display: block;">
-    <button class="myButton" onclick="buttonClick()">Initialize</button>
-    <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
-    <span id="range">1990</span>
+        <button class="myButton" onclick="buttonClick()">Initialize</button>
+        <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
+        <span id="range">1990</span>
     </div>
     <div style="float:right; margin-right:20%; display: block;">
         <button id="btnFactor1" class="myButton" onclick="btnFactor1Click()">Factor 1</button>
         <button id="btnFactor2" class="myButton" onclick="btnFactor2Click()">Factor 2</button>
         <button id="btnFactor3" class="myButton" onclick="btnFactor3Click()">Factor 3</button>
     </div>    
-   </div>
+  </div>
     <h1 style="color:white; margin-top:0px; margin-bottom:0px;">TEST</h1>
     <table style="margin-left:250px">
     <tr><td style="width:500px;"><label id="labelLeft" class="labelFontSmaller">Migration data</label></td>
@@ -43,37 +43,43 @@
       <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; display: block;"></div>
   </div>
   <script>
-        // Initialize fill datasets  
+        // Initialize datasets and global vars 
         var years = ['1990', '1995', '2000', '2005', '2010', '2015']; 
-
+        var year = 1990;
+        var current_country; // so that we can redraw arcs for current country when changing year
+        
         var gdp_fills   = {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
         var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
+        var im_arcs;
+        var em_arcs;
         
-        // test comment
-        // Colorscales
+        // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 20000, 110000.0])
             .range(['#D3D3D3', '#009900', '#006600']); // Greens
 
         var stockScale =  d3.scale.linear().domain([0.0, 0.2, 0.9])
             .range(['#D3D3D3', '#8c1aff', '#5900b3']); // Purples
 
+        // Load the data
         queue()
             .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
             .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
+            .defer(d3.json, "/processed_data/immigrant_arcs.json")
+            .defer(d3.json, "/processed_data/emigrant_arcs.json")
             .await(loadAllData);
 
-        function loadAllData(error, gdp, stock) {
+        function loadAllData(error, gdp, stock, im, em) {
             years.forEach( function(y) 
             {
                 gdp.forEach(   function(d) {   gdp_fills[y][d.id] = gdpScale(d[y]) });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
             })
-            console.log(gdp_fills['1990']);
+            im_arcs = im; 
+            console.log(im_arcs[1990]);
+            em_arcs = em;
         };
 
-
-        var value = 1990;
-       //basic map config with custom fills, mercator projection
+        // Maps config
         var stockMap = new Datamap({
             scope: 'world',
             element: document.getElementById('container1'),
@@ -87,7 +93,7 @@
               
             geographyConfig: {
                 //popupTemplate: 
-             // borderColor: 'red' ,
+              // borderColor: 'red' ,
               highlightBorderColor: 'black',
               highlightBorderWidth: 1
             },
@@ -119,151 +125,42 @@
             }
         });
       
-      //Mouse click event
-      d3.selectAll('#container1').on('click', function(info) {
-          //call our arc function
-          drawArcs(d3.select(d3.event.target).data()[0].id);
-      });
-      
-      
-//        d3.selectAll('#container1').on('mouseout', function(info) {
-//         // if (d3.event.target.tagName == "circle"){
-//            console.log(d3.select(d3.event.target).data()[0],"out")
-//          //}
-//        });
-//        d3.selectAll('#container1').on('mouseover', function(info) {
-//          //if (d3.event.target.tagName == "circle"){
-//            console.log(d3.select(d3.event.target).data()[0],"over")
-//          //}
-//        });
-      
-      var testArcs = [];     
-         
-      //Building the arcs from data
-         
-      //TODO: Put this in a function, that takes the current year, and
-         //loads the correct arc data (from csv file)
-         
-    
-        //TODO: Read in this to a (key,value) list with key "CountryCode", value, list of arcs
-      
-        d3.csv("data2.csv", function(error, csvdata) {
-
-            for (var i=0;i < csvdata.length;i++)
-            { 
-                //How many destinations are possible?
-                //Do we read them from a different file? 
-                //One arc for 1000's of migrants, or just 1 per country?
-                
-                //only USA, has test data now
-                if ((csvdata[i].id == "USA")) //||(csvdata[i].id == "CAN"))
-                {   
-                    //Push every entry onto our array
-                    testArcs.push({
-                        origin: {
-                            latitude: csvdata[i].latStart,
-                            longitude: csvdata[i].longStart
-                        },
-                        destination: {
-                            latitude: csvdata[i].lat1,
-                            longitude: csvdata[i].long1 
-                        },
-                        strokeWidth: csvdata[i].weight1
-                    });
-                    
-                    testArcs.push({
-                        origin: {
-                            latitude: csvdata[i].latStart,
-                            longitude: csvdata[i].longStart
-                        },
-                        destination: {
-                            latitude: csvdata[i].lat2,
-                            longitude: csvdata[i].long2 
-                        },
-                        strokeWidth: csvdata[i].weight2
-                    
-                    });
-                    
-                     testArcs.push({
-                        origin: {
-                            latitude: csvdata[i].latStart,
-                            longitude: csvdata[i].longStart
-                        },
-                        destination: {
-                            latitude: csvdata[i].lat3,
-                            longitude: csvdata[i].long3
-                        },
-                        strokeWidth: csvdata[i].weight3
-                         
-                    });
-                    
-                    
-                }
-            }
+        //Mouse click event
+        d3.selectAll('#container1').on('click', function(info) {
+            current_country = d3.select(d3.event.target).data()[0].id;
+            // call arc function
+            drawArcs(current_country);  //d3.select(d3.event.target).data()[0].id);
         });
-          
+
+        function drawArcs(country)
+        {
+          console.log("Drawing arcs for: ", country);
+          stockMap.arc(im_arcs[year][country]); // immigrant arcs on stock map
+          factorMap.arc(em_arcs[year][country]); // emigrant arcs on factor map
+        }
+
+        // Set year function
         d3.selectAll("input").on("change", function change() {
-                        value = this.value;
-                        console.log(value);
+                        year = this.value;
+                        console.log(year);
                         buttonClick();
         });
-      
-      
-      function drawArcs(country)
-      {
-          //country will give us what to draw. 
-          //TODO: Call function to build the right arcs for this country.
-          
-          console.log("Drawing arcs for:");
-          console.log(country);
-          
-          //Draw the arcs
-          stockMap.arc(testArcs); //, {strokeWidth: 2}); 
-      }
              
         function buttonClick()
         {
+            // Update arcs for current country
+            drawArcs(current_country); // can we clear current_country with a button?
+
             //clear arcs
-            stockMap.arc([]);
+            //stockMap.arc([]);
+            //factorMap.arc([]);
             
             // Update fill colors
-            stockMap.updateChoropleth(stock_fills[value]);
-            factorMap.updateChoropleth(gdp_fills[value]);
-
-            //testValue
-            console.log("Inside buttonClick");
-            console.log(value);
+            stockMap.updateChoropleth(stock_fills[year]);
+            factorMap.updateChoropleth(gdp_fills[year]);
             
-            document.getElementById('testValue').innerHTML = "Showing year:" + value;
-            
-            //TODO: Set countries, filldata, call updateCloropleth to update map
-            //TODO: Read the values for each year. (crisis data)
-            //TODO: Reload the arcs for that year
-            
-            /*
-            switch(value){
-                    
-                case '1990':
-                    console.log("Inside case 1990");
-                    map.updateChoropleth({
-                USA: 'red',
-                CAN: '#f0af0a'
-                });
-                    break;
-                case '1995':
-                    console.log("Inside case 1990");
-                    map.updateChoropleth({
-                USA: '#f0af0a',
-                CAN: 'red'
-                });
-                    break;
-                default:
-                    console.log("Inside switch");
-                    console.log(value);
-                    break;
-                }             
-            */
+            document.getElementById('testValue').innerHTML = "Showing year:" + year;
         }
-         
+ 
      </script>
 </body>
