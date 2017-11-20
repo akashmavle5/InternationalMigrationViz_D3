@@ -21,11 +21,8 @@ h2 {
 }
 
 p {
+    font-family: "Verdana";
     font-size: 14px;
-}
-
-p {
-    font-family: "Times New Roman", Times, serif;
 }
 
 .myButton {
@@ -163,6 +160,7 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
     background: #ccc;
 }
+
 
 
 

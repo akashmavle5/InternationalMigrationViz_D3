@@ -2,32 +2,106 @@
 <meta charset="utf-8">
 <head>
 <link rel="stylesheet" type="text/css" href="design.css">
+<style>
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+/* The Close Button */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+</style>
+    
 </head>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/topojson.v1.min.js"></script>
   <script src="./js/datamaps.world.min.js?v=1"></script>
   <script src="https://d3js.org/queue.v1.min.js"></script>
 <body>
+    
+  <!-- A popup -->
+  <div id="myModal" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <label id="popupTitle">Show info about country/factor here</label>
+    <div id="popupChart">
+        <!--The chart for each country is shown here -->
+    </div>
+  </div>
+  </div>
+
+<script>
+// Get the popup
+var modal = document.getElementById('myModal');
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// Click on <span> (x), close popup
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+//click anywhere outside of popup, closes it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+    
   <h2>Migration of people and its effect over the world</h2>
     <label id="testValue" class="labelFont">Showing year:</label>
     <br>
     <br>
   <div id="sliderandbuttons" style="width:100%; margin-left:20px; padding-bottom:0px; background-color:red;">
-    <div style="float: left; display: block;">
-        <button class="myButton" onclick="buttonClick()">Initialize</button>
+    <div style="float: left;">
+        <button class="myButton" onclick="clearArcs()">Clear</button>
         <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
         <span id="range">1990</span>
     </div>
-    <div style="float:right; margin-right:20%; display: block;">
-        <button id="btnFactor1" class="myButton" onclick="btnFactor1Click()">Factor 1</button>
-        <button id="btnFactor2" class="myButton" onclick="btnFactor2Click()">Factor 2</button>
-        <button id="btnFactor3" class="myButton" onclick="btnFactor3Click()">Factor 3</button>
+    <div style="float:right; margin-right:20%;">
+        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap(1)">Factor 1</button>
+        <button id="btnFactor2" class="myButton" onclick="loadFactorToMap(2)">Factor 2</button>
+        <button id="btnFactor3" class="myButton" onclick="loadFactorToMap(3)">Factor 3</button>
     </div>    
   </div>
     <h1 style="color:white; margin-top:0px; margin-bottom:0px;">TEST</h1>
     <table style="margin-left:250px">
     <tr><td style="width:500px;"><label id="labelLeft" class="labelFontSmaller">Migration data</label></td>
-    <td style="width:300px;"><label id="labelFactor" class="labelFontSmaller">Factor 1</label></td></tr>
+    <td style="width:300px;"><label id="labelFactor" class="labelFontSmaller">Showing Factor: 1</label></td></tr>
     </table>
   <script type="text/javascript">
     onload = function() {
@@ -35,24 +109,41 @@
         $('testslider').oninput = function() { $('range').innerHTML = this.value; };
         $('testslider').oninput();
     };
+      
     </script>
+    
   <div id="wraparoundDiv" style="width:100%;">
-      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left; display: block;">
+      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left;">
           </div>
       <div id="divider" style="background-color: black; position: left; width:10px; max-height: 450px; display: block;"></div>
-      <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; display: block;"></div>
+      <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; "></div>
   </div>
+    
   <script>
+      
         // Initialize datasets and global vars 
         var years = ['1990', '1995', '2000', '2005', '2010', '2015']; 
         var year = 1990;
-        var current_country; // so that we can redraw arcs for current country when changing year
-        
+        var current_country = ""; // so that we can redraw arcs for current country when changing year. Must be empty string to start with.
+        var current_factor = 1;  
+      
         var gdp_fills   = {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
         var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
         var im_arcs;
         var em_arcs;
         
+        var popupHeader = document.getElementById('popupTitle');
+       
+        //for testing 
+        var dataFile = [
+			{x:0, y:300},
+			{x:30, y:180},
+		    {x:50, y:220},
+			{x:80, y:50},
+			{x:100, y:480},
+			{x:270, y:400}
+			] ;
+      
         // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 20000, 110000.0])
             .range(['#D3D3D3', '#009900', '#006600']); // Greens
@@ -71,12 +162,15 @@
         function loadAllData(error, gdp, stock, im, em) {
             years.forEach( function(y) 
             {
-                gdp.forEach(   function(d) {   gdp_fills[y][d.id] = gdpScale(d[y]) });
+                gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
             })
             im_arcs = im; 
             console.log(im_arcs[1990]);
             em_arcs = em;
+            
+            //trigger initialize after first load, to load the color maps
+            updateFillColors();
         };
 
         // Maps config
@@ -125,41 +219,101 @@
             }
         });
       
+      
         //Mouse click event
         d3.selectAll('#container1').on('click', function(info) {
             current_country = d3.select(d3.event.target).data()[0].id;
             // call arc function
             drawArcs(current_country);  //d3.select(d3.event.target).data()[0].id);
         });
-
+      
+        //Mouse click event, right map
+        d3.selectAll('#container2').on('click', function(info) {
+            current_country = d3.select(d3.event.target).data()[0].id;
+            
+            //show popup with graph
+            loadPopup(current_country);
+        });
+      
+        function loadPopup(country)
+        {
+             modal.style.display = "block";
+             
+             loadPopUpChart(dataFile);
+             //d3.csv("./movies.csv", lineChart);
+        }
+      
         function drawArcs(country)
         {
-          console.log("Drawing arcs for: ", country);
-          stockMap.arc(im_arcs[year][country]); // immigrant arcs on stock map
-          factorMap.arc(em_arcs[year][country]); // emigrant arcs on factor map
+          if (country != "")
+          {
+            console.log("Drawing arcs for: ", country);
+            stockMap.arc(im_arcs[year][country]); // immigrant arcs on stock map
+            factorMap.arc(em_arcs[year][country]); // emigrant arcs on factor map
+           }
         }
 
         // Set year function
         d3.selectAll("input").on("change", function change() {
                         year = this.value;
                         console.log(year);
-                        buttonClick();
+                        updateMaps();
         });
              
-        function buttonClick()
+        //create popupcanvas, just once
+        var popupCanvas = d3.select("#popupChart")
+            .append("svg:svg")
+            .attr("width", 300)//canvasWidth)
+            .attr("height", 300);//canvasHeight);
+      
+        function clearArcs()
         {
-            // Update arcs for current country
-            drawArcs(current_country); // can we clear current_country with a button?
-
+            current_country = "";
             //clear arcs
-            //stockMap.arc([]);
-            //factorMap.arc([]);
+            stockMap.arc([]);
+            factorMap.arc([]);
+        }
+      
+        function updateMaps()
+        {
+            console.log("UpdateMaps");
+            console.log(current_country);
             
+            // Update arcs for current country
+            drawArcs(current_country); 
+
             // Update fill colors
-            stockMap.updateChoropleth(stock_fills[year]);
-            factorMap.updateChoropleth(gdp_fills[year]);
+            updateFillColors();
             
             document.getElementById('testValue').innerHTML = "Showing year:" + year;
+        }
+      
+        function updateFillColors()
+        {
+            stockMap.updateChoropleth(stock_fills[year]);
+            factorMap.updateChoropleth(gdp_fills[year]);
+        }
+      
+        function loadFactorToMap(factorValue)
+        {
+            current_factor = factorValue;
+            labelFactor.innerHTML = "Showing Factor: " + current_factor;   
+        }
+      
+        
+        function loadPopUpChart(data) {
+           
+           popupHeader.innerHTML = "Showing data for country: " + current_country + ", for factor: " + current_factor;
+            
+	       var lineFunction = d3.svg.line()
+			.x( d => d.x )
+			.y( d => d.y )
+			
+		    popupCanvas.append("path")
+			.attr("d", lineFunction(dataFile))
+			.attr("stroke", "blue")
+			.attr("stroke-width","2")
+			.attr("fill","purple") ;
         }
  
      </script>
