@@ -93,9 +93,9 @@ window.onclick = function(event) {
         <span id="range">1990</span>
     </div>
     <div style="float:right; margin-right:20%;">
-        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap('NetRefugees')">Net Refugees</button>
+        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap('NetRefugees')">Net Refugees per capita</button>
         <button id="btnFactor2" class="myButton" onclick="loadFactorToMap('GDP')">GDP per capita</button>
-        <button id="btnFactor3" class="myButton" onclick="loadFactorToMap(3)">Factor 3</button>
+        <button id="btnFactor3" class="myButton" onclick="loadFactorToMap('Life')">Life Expectancy</button>
     </div>    
   </div>
     <h1 style="color:white; margin-top:0px; margin-bottom:0px;">TEST</h1>
@@ -128,6 +128,7 @@ window.onclick = function(event) {
       
         var gdp_fills   =   {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
         var refugee_fills = {}; years.forEach(function(y) { refugee_fills[y] = {}; });
+        var life_fills = {}; years.forEach(function(y) { life_fills[y] = {}; });
         var stock_fills =   {}; years.forEach(function(y) { stock_fills[y] = {}; });
         var im_arcs;
         var em_arcs;
@@ -145,11 +146,14 @@ window.onclick = function(event) {
 			] ;
 
         // Config colorscales
-        var gdpScale =  d3.scale.linear().domain([0.1, 20000, 110000.0])
-            .range(['#D3D3D3', '#5c8a03', '#264301']); // Greens
+        var gdpScale =  d3.scale.linear().domain([0.1, 1.0, 1000, 1000.1, 10000, 110000.0])
+            .range(['#D3D3D3', '#a30e15', '#f5bac6', '#D3D3D3','#5c8a03', '#264301']); // Greens
 
-        var refugeeScale =  d3.scale.linear().domain([-0.51, -0.25, -0.05, 0.0, 0.05, 0.25, 0.51])
+        var refugeeScale =  d3.scale.linear().domain([-0.51, -0.25, -0.01, 0.0, 0.01, 0.25, 0.51])
             .range(['#a30e15', '#a30e15', '#f5bac6', '#D3D3D3', '#5c8a03', '#264301', '#264301']); 
+
+        var lifeScale =  d3.scale.linear().domain([30.0, 59.99, 60.0, 60.01, 80.0, 100.0])
+            .range(['#a30e15', '#f5bac6', '#D3D3D3', '#5c8a03', '#345c01', '#264301']);
 
         var stockScale =  d3.scale.linear().domain([0.0, 0.2, 0.9])
             .range(['#D3D3D3', '#5a91a6', '#7cadbe']); // Blues
@@ -160,16 +164,18 @@ window.onclick = function(event) {
         queue()
             .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
             .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
+            .defer(d3.csv, "/processed_data/LifeExpectancy.csv")
             .defer(d3.csv, "/processed_data/NetRefugees_per_cap.csv")
             .defer(d3.json, "/processed_data/immigrant_arcs.json")
             .defer(d3.json, "/processed_data/emigrant_arcs.json")
             .await(loadAllData);
 
-        function loadAllData(error, gdp, stock, refugees, im, em) {
+        function loadAllData(error, gdp, stock, life, refugees, im, em) {
             years.forEach( function(y) 
             {
                 gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
+                life.forEach( function(d) { life_fills[y][d.id] = lifeScale(d[y]) });
                 refugees.forEach( function(d) { refugee_fills[y][d.id] = refugeeScale(d[y]) });
 
             })
@@ -178,7 +184,7 @@ window.onclick = function(event) {
 
             fillsDict['NetRefugees'] = refugee_fills;
             fillsDict['GDP'] = gdp_fills;
-            
+            fillsDict['Life'] = life_fills;
             // trigger initialize after first load, to load the color maps
             updateFillColors('NetRefugees');
         };
