@@ -93,8 +93,8 @@ window.onclick = function(event) {
         <span id="range">1990</span>
     </div>
     <div style="float:right; margin-right:20%;">
-        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap(1)">Factor 1</button>
-        <button id="btnFactor2" class="myButton" onclick="loadFactorToMap(2)">Factor 2</button>
+        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap('NetRefugees')">Net Refugees</button>
+        <button id="btnFactor2" class="myButton" onclick="loadFactorToMap('GDP')">GDP per capita</button>
         <button id="btnFactor3" class="myButton" onclick="loadFactorToMap(3)">Factor 3</button>
     </div>    
   </div>
@@ -113,8 +113,7 @@ window.onclick = function(event) {
     </script>
     
   <div id="wraparoundDiv" style="width:100%;">
-      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left;">
-          </div>
+      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left;"></div>
       <div id="divider" style="background-color: black; position: left; width:10px; max-height: 450px; display: block;"></div>
       <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; "></div>
   </div>
@@ -125,10 +124,11 @@ window.onclick = function(event) {
         var years = ['1990', '1995', '2000', '2005', '2010', '2015']; 
         var year = 1990;
         var current_country = ""; // so that we can redraw arcs for current country when changing year. Must be empty string to start with.
-        var current_factor = 1;  
+        var current_factor = 'NetRefugees';  
       
-        var gdp_fills   = {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
-        var stock_fills = {}; years.forEach(function(y) { stock_fills[y] = {}; });
+        var gdp_fills   =   {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
+        var refugee_fills = {}; years.forEach(function(y) { refugee_fills[y] = {}; });
+        var stock_fills =   {}; years.forEach(function(y) { stock_fills[y] = {}; });
         var im_arcs;
         var em_arcs;
         
@@ -143,34 +143,44 @@ window.onclick = function(event) {
 			{x:100, y:480},
 			{x:270, y:400}
 			] ;
-      
+
         // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 20000, 110000.0])
-            .range(['#D3D3D3', '#009900', '#006600']); // Greens
+            .range(['#D3D3D3', '#5c8a03', '#264301']); // Greens
+
+        var refugeeScale =  d3.scale.linear().domain([-0.51, -0.25, -0.05, 0.0, 0.05, 0.25, 0.51])
+            .range(['#a30e15', '#a30e15', '#f5bac6', '#D3D3D3', '#5c8a03', '#264301', '#264301']); 
 
         var stockScale =  d3.scale.linear().domain([0.0, 0.2, 0.9])
-            .range(['#D3D3D3', '#8c1aff', '#5900b3']); // Purples
+            .range(['#D3D3D3', '#5a91a6', '#7cadbe']); // Blues
+
+        var fillsDict = {};
 
         // Load the data
         queue()
             .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
             .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
+            .defer(d3.csv, "/processed_data/NetRefugees_per_cap.csv")
             .defer(d3.json, "/processed_data/immigrant_arcs.json")
             .defer(d3.json, "/processed_data/emigrant_arcs.json")
             .await(loadAllData);
 
-        function loadAllData(error, gdp, stock, im, em) {
+        function loadAllData(error, gdp, stock, refugees, im, em) {
             years.forEach( function(y) 
             {
                 gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
+                refugees.forEach( function(d) { refugee_fills[y][d.id] = refugeeScale(d[y]) });
+
             })
             im_arcs = im; 
-            console.log(im_arcs[1990]);
             em_arcs = em;
+
+            fillsDict['NetRefugees'] = refugee_fills;
+            fillsDict['GDP'] = gdp_fills;
             
-            //trigger initialize after first load, to load the color maps
-            updateFillColors();
+            // trigger initialize after first load, to load the color maps
+            updateFillColors('NetRefugees');
         };
 
         // Maps config
@@ -184,7 +194,6 @@ window.onclick = function(event) {
               //lt50: 'rgba(0,244,244,0.9)',
               //gt50: 'blue'
             },
-              
             geographyConfig: {
                 //popupTemplate: 
               // borderColor: 'red' ,
@@ -198,21 +207,17 @@ window.onclick = function(event) {
             element: document.getElementById('container2'),
             projection: 'mercator',
             height: 500,
-            dataUrl: 'data2.csv',
-            dataType: 'csv',
+            //dataUrl: 'data2.csv',
+            //dataType: 'csv',
             data: {},
             fills: {
-            //Use "keyword" from CSV to fill a color
-              'Visited': 'light-blue',
               defaultFill: '#D3D3D3'
             },
-              
             geographyConfig: {
-             popupTemplate: function(geo, data) {
+              popupTemplate: function(geo, data) {
                    //var position = d3.mouse(self.options.element);
                    //console.log("Position is: " + position);
-                    return data && data.info 
-                     && "<div class='hoverinfo' style='margin-left: 500px;'><strong>" + data.info + "</strong></div>";
+                    return "<div class='hoverinfo'><strong>" + geo.properties.name + "</strong></div>";
              },
               highlightBorderColor: 'black',
               highlightBorderWidth: 1,
@@ -283,21 +288,22 @@ window.onclick = function(event) {
             drawArcs(current_country); 
 
             // Update fill colors
-            updateFillColors();
+            updateFillColors(current_factor);
             
             document.getElementById('testValue').innerHTML = "Showing year:" + year;
         }
       
-        function updateFillColors()
+        function updateFillColors(factorValue)
         {
             stockMap.updateChoropleth(stock_fills[year]);
-            factorMap.updateChoropleth(gdp_fills[year]);
+            factorMap.updateChoropleth(fillsDict[factorValue][year]);
         }
       
         function loadFactorToMap(factorValue)
         {
             current_factor = factorValue;
             labelFactor.innerHTML = "Showing Factor: " + current_factor;   
+            updateFillColors(current_factor)
         }
       
         
