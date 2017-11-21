@@ -266,7 +266,6 @@ window.onclick = function(event) {
              modal.style.display = "block";
              
              loadPopUpChart(dataFile);
-             //d3.csv("./movies.csv", lineChart);
         }
       
         function drawArcs(country)
@@ -355,39 +354,45 @@ window.onclick = function(event) {
 
             // TODO: map country code to actual name
             x.domain(["Immigrants", current_country, "Emigrants"])
+            var datamin, datamax;
 
             // only defined for GDP and Life expectancy
             var plotfactor;
             if (current_factor == 'Life'){
                 plotfactor = 'Life'; 
-                y.domain([40, 80]);
+                datamin = 50; datamax = 70;
+                //y.domain([40, 80]);
             } else {
                 plotfactor = 'GDP'; 
-                y.domain([0,100000])
+                datamin = 1000; datamax = 5000;
+                //y.domain([0,100000])
             }
 
-            var plotdata = datasets[plotfactor][year]; console.log(plotdata);
-            var lineparams = {};
+            var plotdata = datasets[plotfactor][year];
             var circle_y = plotdata[current_country];
 
-            var im_lines = {};
-            var em_lines = {};
+            var im_lines = [];
+            var em_lines = [];
 
             im_arcs[year][current_country].forEach(function (arc) {
-                console.log(arc);
-                im_lines[arc.id] = {};
-                im_lines[arc.id]['endpts'] = [{x: "Immigrants", y: plotdata[arc.id]},
-                                              {x: current_country, y: circle_y}];
-                im_lines[arc.id]['strokeColor'] = arc['strokeColor'];
-                im_lines[arc.id]['strokeWidth'] = arc['strokeWidth'];
+                im_lines.push({'endpts': [{x: "Immigrants", y: plotdata[arc.id]},
+                                         {x: current_country, y: circle_y}],
+                              'stroke': arc['strokeColor'],
+                              'stroke-width': arc['strokeWidth']
+                });
+                if (Number(plotdata[arc.id]) < datamin) {datamin = Number(plotdata[arc.id]) };
+                if (Number(plotdata[arc.id]) > datamax) {datamax = Number(plotdata[arc.id]) };
             });
             em_arcs[year][current_country].forEach(function (arc) {
-                em_lines[arc.id] = {};
-                em_lines[arc.id]['endpts'] = [{x: current_country, y: circle_y},
-                                              {x: "Emigrants", y: plotdata[arc.id]}];
-                em_lines[arc.id]['strokeColor'] = arc['strokeColor'];
-                em_lines[arc.id]['strokeWidth'] = arc['strokeWidth'];
+                em_lines.push({'endpts': [{x: current_country, y: circle_y},
+                                          {x: "Emigrants", y: plotdata[arc.id]}],
+                              'stroke': arc['strokeColor'],
+                              'stroke-width': arc['strokeWidth']
+                })
+                if (Number(plotdata[arc.id]) < datamin) {datamin = Number(plotdata[arc.id]) };
+                if (Number(plotdata[arc.id]) > datamax) {datamax = Number(plotdata[arc.id]) };
             });
+            y.domain([datamin, datamax]);
 
             // append axes
             popupCanvas.append("g")
@@ -403,26 +408,30 @@ window.onclick = function(event) {
                 .attr("transform", "translate(" + (canvasWidth-margin.right) + ",0)")
                 .call(yAxisRight);
 
+            // draw lines
+            var lineFunction = d3.svg.line()
+            .x( d => x(d.x) )
+            .y( d => y(d.y) );
+
+            popupCanvas.selectAll()
+                .data(im_lines)
+                .enter().append("path")
+                .attr("d", function(d) {return lineFunction(d['endpts']); })
+                .attr("stroke-width", function(d) {return Math.pow(d['strokeWidth'], 1.5);})
+                .attr("stroke","green") ;
+
+            popupCanvas.selectAll()
+                .data(em_lines)
+                .enter().append("path")
+                .attr("d", function(d) {return lineFunction(d['endpts']); })
+                .attr("stroke-width", function(d) {return 2*d['strokeWidth'];})
+                .attr("stroke","red") ;
+
             // add central dot
             popupCanvas.append("circle")
-                .attr("r", 75)
+                .attr("r", 50)
                 .attr("cx", x(current_country))
-                .attr("cy", y(45000));
-
-            console.log(x(current_country));
-
-            /*
-            var lineFunction = d3.svg.line()
-            .x( d => d.x )
-            .y( d => d.y )
-
-            popupCanvas.append("path")
-            .attr("d", lineFunction(dataFile))
-            .attr("stroke", "blue")
-            .attr("stroke-width","2")
-            .attr("fill","purple") ;
-            */
-
+                .attr("cy", y(circle_y));
         }
      
      </script>
