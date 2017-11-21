@@ -173,16 +173,6 @@ window.onclick = function(event) {
         var em_arcs;
         
         var popupHeader = document.getElementById('popupTitle');
-       
-        //for testing 
-//        var dataFile = [
-//			{x:0, y:300},
-//			{x:30, y:180},
-//		    {x:50, y:220},
-//			{x:80, y:50},
-//			{x:100, y:480},
-//			{x:270, y:400}
-//			] ;
 
         // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 1.0, 1000, 1000.1, 10000, 110000.0])
@@ -200,15 +190,16 @@ window.onclick = function(event) {
         var fillsDict = {};
 
         // Load the data
+        var dataRoot = "./processed_data/"
         queue()
-            .defer(d3.csv, "/processed_data/GDP_per_capita.csv")
-            .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
-            .defer(d3.csv, "/processed_data/LifeExpectancy.csv")
-            .defer(d3.csv, "/processed_data/NetRefugees_per_cap.csv")
-            .defer(d3.csv, "/processed_data/RawTotalMigrants.csv")
-            .defer(d3.csv, "/processed_data/NetTotalRatio.csv")
-            .defer(d3.json, "/processed_data/immigrant_arcs.json")
-            .defer(d3.json, "/processed_data/emigrant_arcs.json")
+            .defer(d3.csv, dataRoot + "GDP_per_capita.csv")
+            .defer(d3.csv, dataRoot + "Total_stock_as_fraction.csv")
+            .defer(d3.csv, dataRoot + "LifeExpectancy.csv")
+            .defer(d3.csv, dataRoot + "NetRefugees_per_cap.csv")
+            .defer(d3.csv, dataRoot + "RawTotalMigrants.csv")
+            .defer(d3.csv, dataRoot + "NetTotalRatio.csv")
+            .defer(d3.json, dataRoot + "immigrant_arcs.json")
+            .defer(d3.json, dataRoot + "emigrant_arcs.json")
             .await(loadAllData);
 
         function loadAllData(error, gdp, stock, life, refugees, rawtotal, imfrac, im, em) {
