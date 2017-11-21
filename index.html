@@ -50,6 +50,16 @@
     shape-rendering: crispEdges;
 }
 
+.labelFontPopupTitle{
+    font-family:"Verdana";
+    font-size: 12px;
+}
+
+.labelFontPopupText{
+    font-family:"Verdana";
+    font-size: 12px;
+}
+
 
 </style>
     
@@ -65,8 +75,8 @@
   <!-- Modal content -->
   <div class="modal-content">
     <span class="close">&times;</span>
-    <label id="popupTitle">Show info about country/factor here</label>
-    <div id="popupChart">
+    <label id="popupTitle" class="labelFontPopupTitle">Show info about country/factor here</label>
+    <div id="popupChart" class="labelFontPopupText">
         <!--The chart for each country is shown here -->
     </div>
   </div>
@@ -165,14 +175,14 @@ window.onclick = function(event) {
         var popupHeader = document.getElementById('popupTitle');
        
         //for testing 
-        var dataFile = [
-			{x:0, y:300},
-			{x:30, y:180},
-		    {x:50, y:220},
-			{x:80, y:50},
-			{x:100, y:480},
-			{x:270, y:400}
-			] ;
+//        var dataFile = [
+//			{x:0, y:300},
+//			{x:30, y:180},
+//		    {x:50, y:220},
+//			{x:80, y:50},
+//			{x:100, y:480},
+//			{x:270, y:400}
+//			] ;
 
         // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 1.0, 1000, 1000.1, 10000, 110000.0])
@@ -298,7 +308,7 @@ window.onclick = function(event) {
              .attr("width", canvasWidth)
              .attr("height", canvasHeight);
             
-             loadPopUpChart(dataFile);
+             loadPopUpChart();
         }
       
         function drawArcs(country)
@@ -384,7 +394,7 @@ window.onclick = function(event) {
         var cScale = d3.scale.linear().domain([-1, 0, 1]).range(['green', '#D3D3D3', 'red']);
 
 
-        function loadPopUpChart(data) {
+        function loadPopUpChart() {
                         
             popupHeader.innerHTML = "Showing data for country: " + current_country + ", for factor: " + current_factor;
 

@@ -20,6 +20,16 @@ h2 {
     font-size: 12px;
 }
 
+.labelFontPopupTitle{
+    font-family:"Verdana";
+    font-size: 12px;
+}
+
+.labelFontPopupText{
+    font-family:"Verdana";
+    font-size: 12px;
+}
+
 p {
     font-family: "Verdana";
     font-size: 14px;
