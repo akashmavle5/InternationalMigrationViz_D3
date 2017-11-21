@@ -123,11 +123,26 @@ window.onclick = function(event) {
     </script>
     
   <div id="wraparoundDiv" style="width:100%;">
-      <div id="container1" style="position: left; width: 48%; max-height: 450px; float: left;"></div>
-      <div id="divider" style="background-color: black; position: left; width:10px; max-height: 450px; display: block;"></div>
-      <div id="container2" style="position: right; width: 48%; max-height: 450px; float: left; "></div>
+      
+      <div id="upperContainer1" style="position: left; width: 49%; max-height: 30px; float: left; border-style:solid; border-width: thin; border-color:darkgray; background-color: lightgray;">
+      <div style="margin-left: 5%;">
+        <button class="myButton" style="margin-right: 5px;">Migration Data</button> 
+        <button class="myButton" onclick="clearArcs()">Clear Arcs</button> 
+      </div>
+      </div>
+      <div id="upperContainer2" style="position: right; width: 49%; max-height: 30px; float: left; border-style:solid; border-width: thin; border-color:darkgray; margin-left: 5px; background-color: lightgray;">
+          <div style="margin-left: 5%;">
+          
+       <button id="btnFactor1" class="myButton" onclick="loadFactorToMap('NetRefugees')">Net Refugees per capita</button>
+        <button id="btnFactor2" class="myButton" onclick="loadFactorToMap('GDP')">GDP per capita</button>
+        <button id="btnFactor3" class="myButton" onclick="loadFactorToMap('Life')">Life Expectancy</button>
+      </div>
+      </div>
+      
+      <div id="container1" style="position: left; width: 49%; max-height: 450px; float: left; border-style:solid; border-width: thin; border-color:darkgray;"></div>
+      <div id="container2" style="position: right; width: 49%; max-height: 450px; float: left; border-style:solid; border-width: thin; border-color:darkgray; margin-left: 5px; "></div>
   </div>
-    
+          
   <script>
       
         // Initialize datasets and global vars 
