@@ -384,11 +384,13 @@ window.onclick = function(event) {
             if (current_factor == 'Life'){
                 plotfactor = 'Life'; 
                 datamin = 50; datamax = 70;
-                //y.domain([40, 80]);
+                popupHeader.innerHTML = "Showing "+current_country+"'s arcs plotted against Life Expectancy.\n" +
+                    "Circle radius is proportional to total migrants, and its color denotes immigrant/emigrant ratio.";
             } else {
                 plotfactor = 'GDP'; 
                 datamin = 1000; datamax = 5000;
-                //y.domain([0,100000])
+                popupHeader.innerHTML = "Showing "+current_country+"'s arcs plotted against GDP per capita.\n" +
+                    "Circle radius is proportional to total migrants, and its color denotes immigrant/emigrant ratio.";
             }
 
             var plotdata = datasets[plotfactor][year];
