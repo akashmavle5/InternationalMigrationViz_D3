@@ -41,6 +41,16 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+
 </style>
     
 </head>
@@ -82,7 +92,7 @@ window.onclick = function(event) {
 }
 </script>
     
-  <h2>Migration of people and its effect over the world</h2>
+  <h2>International Migration and World Bank Indicators</h2>
     <label id="testValue" class="labelFont">Showing year:</label>
     <br>
     <br>
@@ -125,6 +135,9 @@ window.onclick = function(event) {
         var year = 1990;
         var current_country = ""; // so that we can redraw arcs for current country when changing year. Must be empty string to start with.
         var current_factor = 'NetRefugees';  
+        var datasets = {};
+        datasets['GDP'] = {}; years.forEach(function(y) { datasets['GDP'][y] = {}; });
+        datasets['Life'] = {}; years.forEach(function(y) { datasets['Life'][y] = {}; });
       
         var gdp_fills   =   {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
         var refugee_fills = {}; years.forEach(function(y) { refugee_fills[y] = {}; });
@@ -173,15 +186,17 @@ window.onclick = function(event) {
         function loadAllData(error, gdp, stock, life, refugees, im, em) {
             years.forEach( function(y) 
             {
-                gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]) });
+                gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]);
+                                           datasets['GDP'][y][d.id] = d[y];
+                });
+                life.forEach( function(d) { life_fills[y][d.id] = lifeScale(d[y]) 
+                                            datasets['Life'][y][d.id] = d[y];
+                });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
-                life.forEach( function(d) { life_fills[y][d.id] = lifeScale(d[y]) });
                 refugees.forEach( function(d) { refugee_fills[y][d.id] = refugeeScale(d[y]) });
-
-            })
+            });
             im_arcs = im; 
             em_arcs = em;
-
             fillsDict['NetRefugees'] = refugee_fills;
             fillsDict['GDP'] = gdp_fills;
             fillsDict['Life'] = life_fills;
@@ -271,12 +286,6 @@ window.onclick = function(event) {
                         updateMaps();
         });
              
-        //create popupcanvas, just once
-        var popupCanvas = d3.select("#popupChart")
-            .append("svg:svg")
-            .attr("width", 300)//canvasWidth)
-            .attr("height", 300);//canvasHeight);
-      
         function clearArcs()
         {
             current_country = "";
@@ -312,21 +321,109 @@ window.onclick = function(event) {
             updateFillColors(current_factor)
         }
       
-        
+        //var testPopup = {
+        //    {x: "Immigrants", y: 100}
+        //    {x: "GDI", y: 200}
+        //};
+
+        var canvasWidth = 1500;
+        var canvasHeight = 650;
+        var margin = {
+            top: 50,
+            bottom: 50,
+            left: 75,
+            right: 75
+        };
+        //create popupCanvas, just once
+        var popupCanvas = d3.select("#popupChart")
+            .append("svg:svg")
+            .attr("width", canvasWidth)
+            .attr("height", canvasHeight);
+
+        // set invariant  axes params
+        var y = d3.scale.linear().range([canvasHeight-margin.top, margin.bottom]);
+        var x = d3.scale.ordinal().rangeRoundPoints([margin.left, canvasWidth-margin.right]);
+
+        var xAxis = d3.svg.axis().scale(x).orient("bottom");
+        var yAxisLeft = d3.svg.axis().scale(y).orient("left").ticks(10);
+        var yAxisRight = d3.svg.axis().scale(y).orient("right").ticks(10);
+
+
         function loadPopUpChart(data) {
-           
-           popupHeader.innerHTML = "Showing data for country: " + current_country + ", for factor: " + current_factor;
-            
-	       var lineFunction = d3.svg.line()
-			.x( d => d.x )
-			.y( d => d.y )
-			
-		    popupCanvas.append("path")
-			.attr("d", lineFunction(dataFile))
-			.attr("stroke", "blue")
-			.attr("stroke-width","2")
-			.attr("fill","purple") ;
+                        
+            popupHeader.innerHTML = "Showing data for country: " + current_country + ", for factor: " + current_factor;
+
+            // TODO: map country code to actual name
+            x.domain(["Immigrants", current_country, "Emigrants"])
+
+            // only defined for GDP and Life expectancy
+            var plotfactor;
+            if (current_factor == 'Life'){
+                plotfactor = 'Life'; 
+                y.domain([40, 80]);
+            } else {
+                plotfactor = 'GDP'; 
+                y.domain([0,100000])
+            }
+
+            var plotdata = datasets[plotfactor][year]; console.log(plotdata);
+            var lineparams = {};
+            var circle_y = plotdata[current_country];
+
+            var im_lines = {};
+            var em_lines = {};
+
+            im_arcs[year][current_country].forEach(function (arc) {
+                console.log(arc);
+                im_lines[arc.id] = {};
+                im_lines[arc.id]['endpts'] = [{x: "Immigrants", y: plotdata[arc.id]},
+                                              {x: current_country, y: circle_y}];
+                im_lines[arc.id]['strokeColor'] = arc['strokeColor'];
+                im_lines[arc.id]['strokeWidth'] = arc['strokeWidth'];
+            });
+            em_arcs[year][current_country].forEach(function (arc) {
+                em_lines[arc.id] = {};
+                em_lines[arc.id]['endpts'] = [{x: current_country, y: circle_y},
+                                              {x: "Emigrants", y: plotdata[arc.id]}];
+                em_lines[arc.id]['strokeColor'] = arc['strokeColor'];
+                em_lines[arc.id]['strokeWidth'] = arc['strokeWidth'];
+            });
+
+            // append axes
+            popupCanvas.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0,"+ (canvasHeight-margin.bottom) + ")")
+                .call(xAxis);
+            popupCanvas.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate("+margin.left+",0)")
+                .call(yAxisLeft);
+            popupCanvas.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + (canvasWidth-margin.right) + ",0)")
+                .call(yAxisRight);
+
+            // add central dot
+            popupCanvas.append("circle")
+                .attr("r", 75)
+                .attr("cx", x(current_country))
+                .attr("cy", y(45000));
+
+            console.log(x(current_country));
+
+            /*
+            var lineFunction = d3.svg.line()
+            .x( d => d.x )
+            .y( d => d.y )
+
+            popupCanvas.append("path")
+            .attr("d", lineFunction(dataFile))
+            .attr("stroke", "blue")
+            .attr("stroke-width","2")
+            .attr("fill","purple") ;
+            */
+
         }
- 
+     
      </script>
 </body>
