@@ -275,6 +275,15 @@ window.onclick = function(event) {
         {
              modal.style.display = "block";
              
+             //remove old svg
+             d3.select("#popupChart").select("svg").remove();
+            
+             //re-add the svg (clear)
+             popupCanvas = d3.select("#popupChart")
+             .append("svg:svg")
+             .attr("width", canvasWidth)
+             .attr("height", canvasHeight);
+            
              loadPopUpChart(dataFile);
         }
       
@@ -412,14 +421,17 @@ window.onclick = function(event) {
             popupCanvas.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0,"+ (canvasHeight-margin.bottom) + ")")
+                .attr("id","the_X_ax")
                 .call(xAxis);
             popupCanvas.append("g")
                 .attr("class", "y axis")
                 .attr("transform", "translate("+margin.left+",0)")
+                .attr("id","the_Y_ax")
                 .call(yAxisLeft);
             popupCanvas.append("g")
                 .attr("class", "y axis")
                 .attr("transform", "translate(" + (canvasWidth-margin.right) + ",0)")
+                .attr("id","the_Y_ax_2")
                 .call(yAxisRight);
 
             // draw lines
@@ -432,6 +444,7 @@ window.onclick = function(event) {
                 .enter().append("path")
                 .attr("d", function(d) {return lineFunction(d['endpts']); })
                 .attr("stroke-width", function(d) {return Math.pow(d['stroke-width'], 1.2);})
+                .attr("id","the_IM_lines")
                 .attr("stroke","green") ;
 
             popupCanvas.selectAll()
@@ -439,6 +452,7 @@ window.onclick = function(event) {
                 .enter().append("path")
                 .attr("d", function(d) {return lineFunction(d['endpts']); })
                 .attr("stroke-width", function(d) {return Math.pow(d['stroke-width'], 1.2);})
+                .attr("id","the_EM_lines")
                 .attr("stroke","red") ;
 
             // add central dot
@@ -446,7 +460,8 @@ window.onclick = function(event) {
                 .attr("r", rScale(total_migrants[year][current_country]))
                 .attr("fill", cScale(im_fraction[year][current_country]))
                 .attr("cx", x(current_country))
-                .attr("cy", y(circle_y));
+                .attr("cy", y(circle_y))
+                .attr("id","the_circle");
         }
      
      </script>
