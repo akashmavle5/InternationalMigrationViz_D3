@@ -93,26 +93,10 @@ window.onclick = function(event) {
 </script>
     
   <h2>International Migration and World Bank Indicators</h2>
-    <label id="testValue" class="labelFont">Showing year:</label>
-    <br>
-    <br>
-  <div id="sliderandbuttons" style="width:100%; margin-left:20px; padding-bottom:0px; background-color:red;">
-    <div style="float: left;">
-        <button class="myButton" onclick="clearArcs()">Clear</button>
-        <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
-        <span id="range">1990</span>
-    </div>
-    <div style="float:right; margin-right:20%;">
-        <button id="btnFactor1" class="myButton" onclick="loadFactorToMap('NetRefugees')">Net Refugees per capita</button>
-        <button id="btnFactor2" class="myButton" onclick="loadFactorToMap('GDP')">GDP per capita</button>
-        <button id="btnFactor3" class="myButton" onclick="loadFactorToMap('Life')">Life Expectancy</button>
-    </div>    
-  </div>
+    <label id="testValue" class="labelFont">For year: </label>
+    <input id="testslider" type="range" min="1990" max="2015" value="1990" step="5" />   
+    <span id="range" class="labelFont">1990</span>  
     <h1 style="color:white; margin-top:0px; margin-bottom:0px;">TEST</h1>
-    <table style="margin-left:250px">
-    <tr><td style="width:500px;"><label id="labelLeft" class="labelFontSmaller">Migration data</label></td>
-    <td style="width:300px;"><label id="labelFactor" class="labelFontSmaller">Showing Factor: 1</label></td></tr>
-    </table>
   <script type="text/javascript">
     onload = function() {
         var $ = function(id) { return document.getElementById(id); };
@@ -123,7 +107,6 @@ window.onclick = function(event) {
     </script>
     
   <div id="wraparoundDiv" style="width:100%;">
-      
       <div id="upperContainer1" style="position: left; width: 49%; max-height: 30px; float: left; border-style:solid; border-width: thin; border-color:darkgray; background-color: lightgray;">
       <div style="margin-left: 5%;">
         <button class="myButton" style="margin-right: 5px;">Migration Data</button> 
@@ -165,16 +148,6 @@ window.onclick = function(event) {
         
         var popupHeader = document.getElementById('popupTitle');
        
-        //for testing 
-        var dataFile = [
-			{x:0, y:300},
-			{x:30, y:180},
-		    {x:50, y:220},
-			{x:80, y:50},
-			{x:100, y:480},
-			{x:270, y:400}
-			] ;
-
         // Config colorscales
         var gdpScale =  d3.scale.linear().domain([0.1, 1.0, 1000, 1000.1, 10000, 110000.0])
             .range(['#D3D3D3', '#a30e15', '#f5bac6', '#D3D3D3','#5c8a03', '#264301']); // Greens
@@ -338,7 +311,7 @@ window.onclick = function(event) {
             // Update fill colors
             updateFillColors(current_factor);
             
-            document.getElementById('testValue').innerHTML = "Showing year:" + year;
+            //document.getElementById('testValue').innerHTML = "For year:" + year;
         }
       
         function updateFillColors(factorValue)
