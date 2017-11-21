@@ -216,6 +216,10 @@ window.onclick = function(event) {
               //gt50: 'blue'
             },
             geographyConfig: {
+             popupTemplate: function(geo, data) {
+                    //to control where the popup text for each country is shown
+                    return "<div class='hoverinfo' style='margin-left: 10px; margin-top:90px;'><strong>" + geo.properties.name + "</strong></div>";
+             },
                 //popupTemplate: 
               // borderColor: 'red' ,
               highlightBorderColor: 'black',
@@ -238,7 +242,7 @@ window.onclick = function(event) {
               popupTemplate: function(geo, data) {
                    //var position = d3.mouse(self.options.element);
                    //console.log("Position is: " + position);
-                    return "<div class='hoverinfo'><strong>" + geo.properties.name + "</strong></div>";
+                    return "<div class='hoverinfo' style='margin-left: 600px; margin-top:90px;'><strong>" + geo.properties.name + "</strong></div>";
              },
               highlightBorderColor: 'black',
               highlightBorderWidth: 1,
