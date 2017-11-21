@@ -138,6 +138,8 @@ window.onclick = function(event) {
         var datasets = {};
         datasets['GDP'] = {}; years.forEach(function(y) { datasets['GDP'][y] = {}; });
         datasets['Life'] = {}; years.forEach(function(y) { datasets['Life'][y] = {}; });
+        var total_migrants = {}; years.forEach(function(y) { total_migrants[y] = {}; });
+        var im_fraction = {}; years.forEach(function(y) { im_fraction[y] = {}; });
       
         var gdp_fills   =   {}; years.forEach(function(y) { gdp_fills[y]   = {}; });
         var refugee_fills = {}; years.forEach(function(y) { refugee_fills[y] = {}; });
@@ -179,11 +181,13 @@ window.onclick = function(event) {
             .defer(d3.csv, "/processed_data/Total_stock_as_fraction.csv")
             .defer(d3.csv, "/processed_data/LifeExpectancy.csv")
             .defer(d3.csv, "/processed_data/NetRefugees_per_cap.csv")
+            .defer(d3.csv, "/processed_data/RawTotalMigrants.csv")
+            .defer(d3.csv, "/processed_data/NetTotalRatio.csv")
             .defer(d3.json, "/processed_data/immigrant_arcs.json")
             .defer(d3.json, "/processed_data/emigrant_arcs.json")
             .await(loadAllData);
 
-        function loadAllData(error, gdp, stock, life, refugees, im, em) {
+        function loadAllData(error, gdp, stock, life, refugees, rawtotal, imfrac, im, em) {
             years.forEach( function(y) 
             {
                 gdp.forEach( function(d) { gdp_fills[y][d.id] = gdpScale(d[y]);
@@ -194,6 +198,8 @@ window.onclick = function(event) {
                 });
                 stock.forEach( function(d) { stock_fills[y][d.id] = stockScale(d[y]) });
                 refugees.forEach( function(d) { refugee_fills[y][d.id] = refugeeScale(d[y]) });
+                rawtotal.forEach( function(d) { total_migrants[y][d.id] = d[y]})
+                imfrac.forEach( function(d) { im_fraction[y][d.id] = d[y]})
             });
             im_arcs = im; 
             em_arcs = em;
@@ -325,8 +331,8 @@ window.onclick = function(event) {
         //    {x: "GDI", y: 200}
         //};
 
-        var canvasWidth = 1500;
-        var canvasHeight = 650;
+        var canvasWidth = 900;
+        var canvasHeight = 600;
         var margin = {
             top: 50,
             bottom: 50,
@@ -346,6 +352,10 @@ window.onclick = function(event) {
         var xAxis = d3.svg.axis().scale(x).orient("bottom");
         var yAxisLeft = d3.svg.axis().scale(y).orient("left").ticks(10);
         var yAxisRight = d3.svg.axis().scale(y).orient("right").ticks(10);
+
+        // circle scales
+        var rScale =  d3.scale.linear().domain([0.0, 2500000, 46000000]).range([5, 40, 75]);
+        var cScale = d3.scale.linear().domain([-1, 0, 1]).range(['green', '#D3D3D3', 'red']);
 
 
         function loadPopUpChart(data) {
@@ -417,19 +427,20 @@ window.onclick = function(event) {
                 .data(im_lines)
                 .enter().append("path")
                 .attr("d", function(d) {return lineFunction(d['endpts']); })
-                .attr("stroke-width", function(d) {return Math.pow(d['strokeWidth'], 1.5);})
+                .attr("stroke-width", function(d) {return Math.pow(d['stroke-width'], 1.2);})
                 .attr("stroke","green") ;
 
             popupCanvas.selectAll()
                 .data(em_lines)
                 .enter().append("path")
                 .attr("d", function(d) {return lineFunction(d['endpts']); })
-                .attr("stroke-width", function(d) {return 2*d['strokeWidth'];})
+                .attr("stroke-width", function(d) {return Math.pow(d['stroke-width'], 1.2);})
                 .attr("stroke","red") ;
 
             // add central dot
             popupCanvas.append("circle")
-                .attr("r", 50)
+                .attr("r", rScale(total_migrants[year][current_country]))
+                .attr("fill", cScale(im_fraction[year][current_country]))
                 .attr("cx", x(current_country))
                 .attr("cy", y(circle_y));
         }
